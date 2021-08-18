@@ -3,11 +3,25 @@ use serde::{Deserialize, Serialize};
 use std::{
     fmt, fs,
     path::{Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct State {
-    pub test: usize,
+    pub last_ts: String,
+}
+
+impl State {
+    pub fn new() -> Result<State> {
+        let now = SystemTime::now();
+        let current_ts = now
+            .duration_since(UNIX_EPOCH)
+            .context("failed to get current timestamp")?
+            .as_secs();
+        Ok(State {
+            last_ts: current_ts.to_string(),
+        })
+    }
 }
 
 impl fmt::Display for State {
@@ -23,28 +37,35 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn load(path: PathBuf, default_state: State) -> Result<Store> {
-        if path.as_path().exists() {
-            let content = fs::read(&path).context("Failed to load state")?;
-            let state = serde_json::from_slice(&content).with_context(|| {
-                format!(
-                    "Failed to serialize stored state: {}",
-                    String::from_utf8_lossy(&content),
-                )
-            })?;
-            Ok(Store { path, state })
-        } else {
-            Store::store_state(&path, &default_state)?;
-            Ok(Store {
-                path,
-                state: default_state,
-            })
+    pub fn load<F: FnOnce() -> Result<State>>(path: PathBuf, make_state: F) -> Result<Store> {
+        match Store::load_state(&path)? {
+            Some(state) => Ok(Store { path, state }),
+            None => Store::create(path, make_state()?),
         }
+    }
+
+    fn create(path: PathBuf, state: State) -> Result<Store> {
+        Store::store_state(&path, &state)?;
+        Ok(Store { path, state })
+    }
+
+    fn load_state(path: &Path) -> Result<Option<State>> {
+        if !path.exists() {
+            return Ok(None);
+        }
+        let content = fs::read(&path).context("failed to load state")?;
+        let state = serde_json::from_slice(&content).with_context(|| {
+            format!(
+                "failed to serialize stored state: {}",
+                String::from_utf8_lossy(&content),
+            )
+        })?;
+        Ok(Some(state))
     }
 
     fn store_state(path: &Path, state: &State) -> Result<()> {
         let json = serde_json::to_string(state)?;
-        fs::write(path, &json).context("Failed to store state")?;
+        fs::write(path, &json).context("failed to store state")?;
         Ok(())
     }
 
