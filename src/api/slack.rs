@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use reqwest::blocking::{RequestBuilder, Response};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Client {
@@ -28,7 +28,11 @@ impl Client {
         let req = self
             .client
             .get("https://slack.com/api/conversations.history")
-            .query(&[("channel", params.channel), ("oldest", params.oldest_ts)]);
+            .query(&[
+                ("channel", params.channel),
+                ("oldest", params.oldest_ts),
+                ("limit", "3"), // XXX: temporarily
+            ]);
         let res = self.fetch(req)?;
         let data = res.json::<RawConvHistoryResponse>()?;
 
@@ -37,7 +41,23 @@ impl Client {
         }
 
         let err_msg = data.error.unwrap_or_else(|| String::from("unknown error"));
-        Err(anyhow!("Failed to fetch conversation history: {}", err_msg))
+        Err(anyhow!("failed to fetch conversation history: {}", err_msg))
+    }
+
+    pub fn chat_post_message(&self, msg: &ChatMessage) -> Result<()> {
+        let body = serde_json::ser::to_string(&msg)?;
+        let req = self
+            .client
+            .post("https://slack.com/api/chat.postMessage")
+            .header("Content-Type", "application/json")
+            .body(body);
+        let res = self.fetch(req)?;
+        let data = res.json::<RawChatPostMsgResponse>()?;
+
+        if let Some(err_msg) = data.error {
+            return Err(anyhow!("failed to post message: {}", err_msg));
+        }
+        Ok(())
     }
 }
 
@@ -76,4 +96,15 @@ pub struct EmailFile {
 pub struct EmailAddress {
     address: String,
     name: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ChatMessage {
+    pub channel: String,
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RawChatPostMsgResponse {
+    pub error: Option<String>,
 }

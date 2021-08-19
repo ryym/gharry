@@ -19,15 +19,18 @@ impl Config {
 pub struct SlackConfig {
     pub bot_token: String,
     pub mail_channel_id: String,
+    pub dest_channel_id: String,
 }
 
 impl SlackConfig {
     fn from_env() -> Result<Self> {
         let bot_token = must_get_env("SLACK_OAUTH_BOT_TOKEN")?;
         let mail_channel_id = must_get_env("SLACK_MAIL_CHANNEL_ID")?;
+        let dest_channel_id = must_get_env("SLACK_DEST_CHANNEL_ID")?;
         Ok(SlackConfig {
             bot_token,
             mail_channel_id,
+            dest_channel_id,
         })
     }
 }
