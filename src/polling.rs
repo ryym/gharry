@@ -42,17 +42,17 @@ pub fn run(config: Config) -> Result<()> {
 fn filter_and_notify(
     config: &Config,
     slack: &slack::Client,
-    mut messages: Vec<slack::ConversationMessage>,
+    mut messages: Vec<slack::Message>,
 ) -> Result<String> {
     // The messages are sorted by newest to oldest so
     // we reverse the order to process them from oldest.
     messages.reverse();
 
-    for msg in &messages {
+    for _ in &messages {
         notify_by_slack(
             slack,
             config.slack.dest_channel_id.to_string(),
-            msg.files.as_ref().unwrap()[0].subject.clone(),
+            String::from("test"),
         )?;
     }
 

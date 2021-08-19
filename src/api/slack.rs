@@ -69,27 +69,30 @@ pub struct ConvHistoryParams<'a> {
 #[derive(Debug, Deserialize)]
 pub struct RawConvHistoryResponse {
     pub error: Option<String>,
-    pub messages: Option<Vec<ConversationMessage>>,
+    pub messages: Option<Vec<Message>>,
 }
 
 #[derive(Debug)]
 pub struct ConvHistoryResponse {
-    pub messages: Vec<ConversationMessage>,
+    pub messages: Vec<Message>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ConversationMessage {
+pub struct Message {
     pub ts: String,
     pub text: String,
-    pub files: Option<Vec<EmailFile>>,
+    pub files: Option<Vec<File>>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct EmailFile {
-    pub subject: String,
-    pub to: Vec<EmailAddress>,
-    pub from: Vec<EmailAddress>,
-    pub plain_text: String,
+#[serde(tag = "pretty_type")]
+pub enum File {
+    Email {
+        subject: String,
+        to: Vec<EmailAddress>,
+        from: Vec<EmailAddress>,
+        plain_text: String,
+    },
 }
 
 #[derive(Debug, Deserialize)]
