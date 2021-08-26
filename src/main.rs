@@ -1,6 +1,6 @@
-mod api;
 mod config;
 mod polling;
+mod slack;
 mod store;
 
 use crate::config::Config;

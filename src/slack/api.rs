@@ -1,16 +1,14 @@
+use crate::slack::{
+    ChatMessage, ConvHistoryParams, ConvHistoryResponse, Credentials, RawChatPostMsgResponse,
+    RawConvHistoryResponse,
+};
 use anyhow::{anyhow, Result};
 use reqwest::blocking::{RequestBuilder, Response};
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Client {
     client: reqwest::blocking::Client,
     creds: Credentials,
-}
-
-#[derive(Debug)]
-pub struct Credentials {
-    pub bot_token: String,
 }
 
 impl Client {
@@ -59,55 +57,4 @@ impl Client {
         }
         Ok(())
     }
-}
-
-pub struct ConvHistoryParams<'a> {
-    pub channel: &'a str,
-    pub oldest_ts: &'a str,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RawConvHistoryResponse {
-    pub error: Option<String>,
-    pub messages: Option<Vec<Message>>,
-}
-
-#[derive(Debug)]
-pub struct ConvHistoryResponse {
-    pub messages: Vec<Message>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Message {
-    pub ts: String,
-    pub text: String,
-    pub files: Option<Vec<File>>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(tag = "pretty_type")]
-pub enum File {
-    Email {
-        subject: String,
-        to: Vec<EmailAddress>,
-        from: Vec<EmailAddress>,
-        plain_text: String,
-    },
-}
-
-#[derive(Debug, Deserialize)]
-pub struct EmailAddress {
-    address: String,
-    name: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ChatMessage {
-    pub channel: String,
-    pub text: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RawChatPostMsgResponse {
-    pub error: Option<String>,
 }
