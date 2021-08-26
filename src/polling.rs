@@ -1,6 +1,6 @@
 use crate::{
-    api::slack,
     config::Config,
+    slack,
     store::{State, Store},
 };
 use anyhow::Result;
@@ -48,6 +48,8 @@ fn filter_and_notify(
     // we reverse the order to process them from oldest.
     messages.reverse();
 
+    let last_ts = messages[messages.len() - 1].ts.clone();
+
     for _ in &messages {
         notify_by_slack(
             slack,
@@ -56,7 +58,7 @@ fn filter_and_notify(
         )?;
     }
 
-    Ok(messages.pop().unwrap().ts)
+    Ok(last_ts)
 }
 
 fn notify_by_slack(slack: &slack::Client, channel: String, text: String) -> Result<()> {
