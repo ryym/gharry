@@ -1,4 +1,7 @@
 mod config;
+mod email;
+mod github;
+mod notif;
 mod polling;
 mod slack;
 mod store;

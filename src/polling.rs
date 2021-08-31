@@ -58,6 +58,9 @@ fn filter_and_notify(
         )?;
     }
 
+    let notifs = crate::notif::messages_into_notifications(messages.into_iter())?;
+    println!("{:?}", notifs);
+
     Ok(last_ts)
 }
 

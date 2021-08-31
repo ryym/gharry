@@ -206,6 +206,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "log",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",
