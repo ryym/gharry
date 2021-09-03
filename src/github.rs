@@ -1,14 +1,24 @@
+mod api;
+
+pub use api::Client;
+
 use crate::email::Email;
 use anyhow::Result;
 use regex::Regex;
+use serde::Deserialize;
 
 #[derive(Debug)]
+pub struct Credentials {
+    pub auth_token: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Repository {
     pub owner: String,
     pub name: String,
@@ -27,6 +37,12 @@ pub struct EmailNotif {
     pub lines: Vec<String>,
     pub detected_issue: Option<IssueInfo>,
     pub github_url: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct GetIssueParams<'a> {
+    pub repo: &'a Repository,
+    pub number: usize,
 }
 
 pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {

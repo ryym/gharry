@@ -5,6 +5,7 @@ mod notif;
 mod polling;
 mod slack;
 mod store;
+mod web;
 
 use crate::config::Config;
 use anyhow::{Context, Result};
