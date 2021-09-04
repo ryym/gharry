@@ -2,6 +2,7 @@ mod config;
 mod email;
 mod github;
 mod notif;
+mod notifier;
 mod polling;
 mod slack;
 mod store;

@@ -1,28 +1,76 @@
+mod plain;
+mod pr_open;
+
 use crate::{github, slack};
 use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Notification {
-    issue: Option<github::IssueInfo>,
+    pub detail: NotifDetail,
 }
 
-pub fn messages_into_notifications(
-    messages: impl Iterator<Item = slack::Message>,
+#[derive(Debug)]
+pub enum NotifDetail {
+    Unknown {
+        sender: String,
+        body: Vec<String>,
+    },
+    PrOpened {
+        opener: github::User,
+        pr: github::IssueInfo,
+    },
+}
+
+#[derive(Debug)]
+pub struct BuildContext<'a> {
+    pub github: &'a github::Client,
+}
+
+pub fn build_notifications(
+    cx: BuildContext,
+    messages: Vec<slack::Message>,
 ) -> Result<Vec<Notification>> {
     let notifs = messages
+        .into_iter()
         .filter_map(slack::extract_email_from_message)
         .try_fold(Vec::new(), |mut notifs, email| {
-            github::build_notif_from_email(email).map(|notif| {
-                notifs.push(build_notification(notif));
-                notifs
-            })
+            github::build_notif_from_email(email)
+                .and_then(|enotif| {
+                    let n = Parser::parse(&cx, enotif)?;
+                    Ok(Notification { detail: n.detail })
+                })
+                .map(|notif| {
+                    notifs.push(notif);
+                    notifs
+                })
         })?;
-
     Ok(notifs)
 }
 
-fn build_notification(enotif: github::EmailNotif) -> Notification {
-    Notification {
-        issue: enotif.detected_issue,
+const PARSERS: [Parser; 1] = [Parser::PrOpen];
+
+#[derive(Debug)]
+enum Parser {
+    PrOpen,
+}
+
+impl Parser {
+    fn parse(cx: &BuildContext, enotif: github::EmailNotif) -> Result<Notification> {
+        for p in PARSERS {
+            if let Some(notif) = p.try_parse(cx, &enotif)? {
+                return Ok(notif);
+            }
+        }
+        Ok(plain::parse(enotif))
+    }
+
+    fn try_parse(
+        &self,
+        cx: &BuildContext,
+        enotif: &github::EmailNotif,
+    ) -> Result<Option<Notification>> {
+        match *self {
+            Self::PrOpen => pr_open::try_parse(cx, enotif),
+        }
     }
 }

@@ -18,13 +18,13 @@ pub struct User {
     pub avatar_url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Repository {
     pub owner: String,
     pub name: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IssueInfo {
     pub repo: Repository,
     pub number: usize,

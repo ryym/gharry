@@ -1,6 +1,6 @@
 use crate::{
     config::Config,
-    slack,
+    github, notif, notifier, slack,
     store::{State, Store},
 };
 use anyhow::Result;
@@ -18,6 +18,10 @@ pub fn run(config: Config) -> Result<()> {
         bot_token: config.slack.bot_token.clone(),
     })?;
 
+    let github = github::Client::new(github::Credentials {
+        auth_token: config.github.auth_token.clone(),
+    })?;
+
     loop {
         let data = slack.conversations_history(slack::ConvHistoryParams {
             channel: &config.slack.mail_channel_id,
@@ -30,7 +34,7 @@ pub fn run(config: Config) -> Result<()> {
             info!("No new notifications found");
         } else {
             info!("{} notifications found", data.messages.len());
-            let last_ts = filter_and_notify(&config, &slack, data.messages)?;
+            let last_ts = filter_and_notify(&config, &slack, &github, data.messages)?;
             store.update_state(State { last_ts })?;
         }
 
@@ -42,6 +46,7 @@ pub fn run(config: Config) -> Result<()> {
 fn filter_and_notify(
     config: &Config,
     slack: &slack::Client,
+    github: &github::Client,
     mut messages: Vec<slack::Message>,
 ) -> Result<String> {
     // The messages are sorted by newest to oldest so
@@ -50,23 +55,10 @@ fn filter_and_notify(
 
     let last_ts = messages[messages.len() - 1].ts.clone();
 
-    for _ in &messages {
-        notify_by_slack(slack, &config.slack.dest_channel_id, "test")?;
+    let notifs = notif::build_notifications(notif::BuildContext { github }, messages)?;
+    for notif in notifs {
+        notifier::notify_by_slack(slack, &config.slack.dest_channel_id, notif)?;
     }
 
-    let notifs = crate::notif::messages_into_notifications(messages.into_iter())?;
-    println!("{:?}", notifs);
-
     Ok(last_ts)
-}
-
-fn notify_by_slack(slack: &slack::Client, channel: &str, text: &str) -> Result<()> {
-    slack.chat_post_message(&slack::ChatMessage {
-        channel,
-        text,
-        username: None,
-        icon_url: None,
-        icon_emoji: None,
-    })?;
-    Ok(())
 }
