@@ -1,5 +1,6 @@
 use crate::{github, web};
 use anyhow::{anyhow, Result};
+use reqwest::StatusCode;
 
 #[derive(Debug)]
 pub struct Client {
@@ -35,11 +36,33 @@ impl Client {
         );
         let res = self.client.get(&url).send()?;
 
-        if res.status().as_u16() != 200 {
+        if res.status().as_u16() != StatusCode::OK {
             web::log_error_response(&url, res);
             return Err(anyhow!("failed to fetch issue: {}", url));
         }
 
         Ok(res.json()?)
+    }
+
+    pub fn get_issue_comment(
+        &self,
+        params: &github::GetIssueCommentParams,
+    ) -> Result<Option<github::IssueComment>> {
+        let url = format!(
+            "https://api.github.com/repos/{}/{}/issues/comments/{}",
+            params.repo.owner, params.repo.name, params.comment_id
+        );
+        let res = self.client.get(&url).send()?;
+
+        if res.status().as_u16() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+
+        if res.status().as_u16() == StatusCode::OK {
+            return Ok(Some(res.json()?));
+        }
+
+        web::log_error_response(&url, res);
+        Err(anyhow!("failed to fetch issue comment: {}", url))
     }
 }

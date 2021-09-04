@@ -1,3 +1,4 @@
+mod issue_comment;
 mod plain;
 mod pr_open;
 
@@ -18,6 +19,12 @@ pub enum NotifDetail {
     PrOpened {
         opener: github::User,
         pr: github::IssueInfo,
+    },
+    Commented {
+        url: String,
+        commenter: github::User,
+        issue: github::IssueInfo,
+        comment: String,
     },
 }
 
@@ -47,11 +54,12 @@ pub fn build_notifications(
     Ok(notifs)
 }
 
-const PARSERS: [Parser; 1] = [Parser::PrOpen];
+const PARSERS: [Parser; 2] = [Parser::PrOpen, Parser::IssueComment];
 
 #[derive(Debug)]
 enum Parser {
     PrOpen,
+    IssueComment,
 }
 
 impl Parser {
@@ -71,6 +79,7 @@ impl Parser {
     ) -> Result<Option<Notification>> {
         match *self {
             Self::PrOpen => pr_open::try_parse(cx, enotif),
+            Self::IssueComment => issue_comment::try_parse(cx, enotif),
         }
     }
 }

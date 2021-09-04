@@ -81,6 +81,18 @@ impl<'de> Deserialize<'de> for IssueState {
     }
 }
 
+#[derive(Debug)]
+pub struct GetIssueCommentParams<'a> {
+    pub repo: &'a Repository,
+    pub comment_id: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct IssueComment {
+    pub body: String,
+    pub user: User,
+}
+
 pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
     let lines = email
         .text_body

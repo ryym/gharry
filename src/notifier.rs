@@ -60,6 +60,20 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(opener.avatar_url),
             })
         }
+        NotifDetail::Commented {
+            url,
+            commenter,
+            issue,
+            comment,
+        } => {
+            let login = format!("@{}", commenter.login);
+            let issue_sbj = issue_subject(&issue, Some(&url));
+            Some(NotifMessage {
+                text: format!("{} 💬  {}\n{}", login, issue_sbj, comment),
+                user_name: Some(login),
+                icon_url: Some(commenter.avatar_url),
+            })
+        }
     }
 }
 
