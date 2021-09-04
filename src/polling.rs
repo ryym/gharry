@@ -16,7 +16,7 @@ pub fn run(config: Config) -> Result<()> {
 
     let slack = slack::Client::new(slack::Credentials {
         bot_token: config.slack.bot_token.clone(),
-    });
+    })?;
 
     loop {
         let data = slack.conversations_history(slack::ConvHistoryParams {
@@ -51,11 +51,7 @@ fn filter_and_notify(
     let last_ts = messages[messages.len() - 1].ts.clone();
 
     for _ in &messages {
-        notify_by_slack(
-            slack,
-            config.slack.dest_channel_id.to_string(),
-            String::from("test"),
-        )?;
+        notify_by_slack(slack, &config.slack.dest_channel_id, "test")?;
     }
 
     let notifs = crate::notif::messages_into_notifications(messages.into_iter())?;
@@ -64,7 +60,13 @@ fn filter_and_notify(
     Ok(last_ts)
 }
 
-fn notify_by_slack(slack: &slack::Client, channel: String, text: String) -> Result<()> {
-    slack.chat_post_message(&slack::ChatMessage { channel, text })?;
+fn notify_by_slack(slack: &slack::Client, channel: &str, text: &str) -> Result<()> {
+    slack.chat_post_message(&slack::ChatMessage {
+        channel,
+        text,
+        username: None,
+        icon_url: None,
+        icon_emoji: None,
+    })?;
     Ok(())
 }

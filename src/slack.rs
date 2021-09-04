@@ -11,27 +11,32 @@ pub struct Credentials {
     pub bot_token: String,
 }
 
-pub struct ConvHistoryParams<'a> {
-    pub channel: &'a str,
-    pub oldest_ts: &'a str,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RawConvHistoryResponse {
-    pub error: Option<String>,
-    pub messages: Option<Vec<Message>>,
-}
-
-#[derive(Debug)]
-pub struct ConvHistoryResponse {
-    pub messages: Vec<Message>,
-}
-
 #[derive(Debug, Deserialize)]
 pub struct Message {
     pub ts: String,
     pub text: String,
     pub files: Option<Vec<File>>,
+}
+
+#[derive(Debug)]
+pub struct ConvHistoryParams<'a> {
+    pub channel: &'a str,
+    pub oldest_ts: &'a str,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ChatMessage<'a> {
+    pub channel: &'a str,
+    pub text: &'a str,
+    pub username: Option<&'a str>,
+    pub icon_url: Option<&'a str>,
+    pub icon_emoji: Option<&'a str>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EmailAddress {
+    pub address: String,
+    pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -50,23 +55,6 @@ impl Default for File {
     fn default() -> Self {
         Self::Unknown
     }
-}
-
-#[derive(Debug, Deserialize)]
-pub struct EmailAddress {
-    pub address: String,
-    pub name: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ChatMessage {
-    pub channel: String,
-    pub text: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RawChatPostMsgResponse {
-    pub error: Option<String>,
 }
 
 pub fn extract_email_from_message(msg: Message) -> Option<Email> {
