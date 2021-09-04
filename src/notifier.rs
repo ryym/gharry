@@ -1,4 +1,5 @@
 use crate::{
+    github,
     notif::{NotifDetail, Notification},
     slack,
 };
@@ -50,6 +51,27 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
             user_name: Some(sender),
             icon_url: None,
         }),
-        _ => todo!(),
+        NotifDetail::PrOpened { opener, pr } => {
+            let login = format!("@{}", opener.login);
+            let pr_sbj = issue_subject(&pr, None);
+            Some(NotifMessage {
+                text: format!("{} opened {}", login, pr_sbj),
+                user_name: Some(login),
+                icon_url: Some(opener.avatar_url),
+            })
+        }
     }
+}
+
+fn issue_subject(issue: &github::IssueInfo, title_link: Option<&str>) -> String {
+    let pr_url = format!(
+        "https://github.com/{}/{}/pull/{}",
+        &issue.repo.owner, &issue.repo.name, issue.number
+    );
+    let title_link = title_link.map(|link| format!("<{}|{}>", link, &issue.title));
+    let title = title_link.as_deref().unwrap_or(&issue.title);
+    format!(
+        "[{}/{}#<{}|{}>] {}",
+        &issue.repo.owner, &issue.repo.name, pr_url, issue.number, title
+    )
 }
