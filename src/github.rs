@@ -1,9 +1,11 @@
 mod api;
+mod issue;
 
 pub use api::Client;
+pub use issue::*;
 
 use crate::email::Email;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use regex::Regex;
 use serde::Deserialize;
 
@@ -45,42 +47,6 @@ pub struct GetIssueParams<'a> {
     pub number: usize,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Issue {
-    pub html_url: String,
-    pub state: IssueState,
-    pub number: usize,
-    pub title: String,
-    pub user: User,
-}
-
-#[derive(Debug)]
-pub enum IssueState {
-    Open,
-    Closed,
-}
-
-impl IssueState {
-    pub fn from_str(s: &str) -> Result<Self> {
-        match s {
-            "open" => Ok(Self::Open),
-            "closed" => Ok(Self::Closed),
-            _ => Err(anyhow!("unknown issue state: {}", s)),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for IssueState {
-    fn deserialize<D>(d: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-        let s: &str = Deserialize::deserialize(d)?;
-        Self::from_str(s).map_err(D::Error::custom)
-    }
-}
-
 #[derive(Debug)]
 pub struct GetIssueCommentParams<'a> {
     pub repo: &'a Repository,
@@ -91,6 +57,13 @@ pub struct GetIssueCommentParams<'a> {
 pub struct IssueComment {
     pub body: String,
     pub user: User,
+}
+
+#[derive(Debug)]
+pub struct GetPrReviewParams<'a> {
+    pub repo: &'a Repository,
+    pub pr_number: usize,
+    pub review_id: usize,
 }
 
 pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
