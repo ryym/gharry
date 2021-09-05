@@ -1,6 +1,7 @@
 mod issue_comment;
 mod plain;
 mod pr_open;
+mod pr_review;
 
 use crate::{github, slack};
 use anyhow::Result;
@@ -20,10 +21,17 @@ pub enum NotifDetail {
         opener: github::User,
         pr: github::IssueInfo,
     },
+    PrReviewed {
+        url: String,
+        pr: github::IssueInfo,
+        state: github::ReviewState,
+        commenter: github::User,
+        comment: String,
+    },
     Commented {
         url: String,
-        commenter: github::User,
         issue: github::IssueInfo,
+        commenter: github::User,
         comment: String,
     },
 }
@@ -54,11 +62,12 @@ pub fn build_notifications(
     Ok(notifs)
 }
 
-const PARSERS: [Parser; 2] = [Parser::PrOpen, Parser::IssueComment];
+const PARSERS: [Parser; 3] = [Parser::PrOpen, Parser::PrReview, Parser::IssueComment];
 
 #[derive(Debug)]
 enum Parser {
     PrOpen,
+    PrReview,
     IssueComment,
 }
 
@@ -79,6 +88,7 @@ impl Parser {
     ) -> Result<Option<Notification>> {
         match *self {
             Self::PrOpen => pr_open::try_parse(cx, enotif),
+            Self::PrReview => pr_review::try_parse(cx, enotif),
             Self::IssueComment => issue_comment::try_parse(cx, enotif),
         }
     }

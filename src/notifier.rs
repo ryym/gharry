@@ -60,6 +60,23 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(opener.avatar_url),
             })
         }
+        NotifDetail::PrReviewed {
+            url,
+            pr,
+            state,
+            commenter,
+            comment,
+        } => {
+            let login = format!("@{}", commenter.login);
+            let pr_sbj = issue_subject(&pr, Some(&url));
+            let state_icon = review_state_emoji(&state);
+            let text = format!("{} {} {}\n{}", login, state_icon, pr_sbj, comment);
+            Some(NotifMessage {
+                text,
+                user_name: Some(login),
+                icon_url: Some(commenter.avatar_url),
+            })
+        }
         NotifDetail::Commented {
             url,
             commenter,
@@ -88,4 +105,12 @@ fn issue_subject(issue: &github::IssueInfo, title_link: Option<&str>) -> String 
         "[{}/{}#<{}|{}>] {}",
         &issue.repo.owner, &issue.repo.name, pr_url, issue.number, title
     )
+}
+
+fn review_state_emoji(state: &github::ReviewState) -> &'static str {
+    match *state {
+        github::ReviewState::Commented => "💬",
+        github::ReviewState::Approved => "👍",
+        github::ReviewState::ChangesRequested => "⚠️",
+    }
 }
