@@ -109,6 +109,30 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(commenter.avatar_url),
             })
         }
+
+        NotifDetail::Pushed {
+            pr,
+            diff_url,
+            committer,
+            commits,
+        } => {
+            let login = format!("@{}", committer.login);
+            let commits_summary = format!(
+                "{} commit{}",
+                commits.len(),
+                if commits.len() == 1 { "" } else { "s" }
+            );
+            let joined_msg = join_commit_messages(&commits, 10);
+            let pr_sbj = issue_subject(&pr, None);
+            Some(NotifMessage {
+                text: format!(
+                    "{} pushed <{}|{}> to {}\n{}",
+                    login, diff_url, commits_summary, pr_sbj, joined_msg
+                ),
+                user_name: Some(login),
+                icon_url: Some(committer.avatar_url),
+            })
+        }
     }
 }
 
@@ -131,4 +155,17 @@ fn review_state_emoji(state: &github::ReviewState) -> &'static str {
         github::ReviewState::Approved => "👍",
         github::ReviewState::ChangesRequested => "⚠️",
     }
+}
+
+fn join_commit_messages(commits: &[github::CommitInfo], max: usize) -> String {
+    let mut joined_msg = commits
+        .iter()
+        .take(max)
+        .map(|c| c.message.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
+    if commits.len() > max {
+        joined_msg.push_str(&format!("...and more {} commits", commits.len() - max));
+    }
+    joined_msg
 }

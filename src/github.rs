@@ -38,6 +38,12 @@ pub struct IssueInfo {
 }
 
 #[derive(Debug)]
+pub struct CommitInfo {
+    pub hash: String,
+    pub message: String,
+}
+
+#[derive(Debug)]
 pub struct EmailNotif {
     pub email: Email,
     pub lines: Vec<String>,
