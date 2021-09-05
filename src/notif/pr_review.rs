@@ -19,7 +19,10 @@ pub(super) fn try_parse(
                 pr_number: issue.number,
                 review_id,
             };
-            let review = cx.github.get_pr_review(&params)?;
+            let review = match cx.github.get_pr_review(&params)? {
+                None => return Ok(None),
+                Some(review) => review,
+            };
 
             // Get the review comment from the email instead of `review.body`. This is because
             // the former contains review discussion comments submitted with the review.

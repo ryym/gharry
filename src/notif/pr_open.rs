@@ -11,10 +11,14 @@ pub(super) fn try_parse(
                 return Ok(None);
             }
 
-            let pr = cx.github.get_issue(&github::GetIssueParams {
+            let params = github::GetIssueParams {
                 repo: &issue.repo,
                 number: issue.number,
-            })?;
+            };
+            let pr = match cx.github.get_issue(&params)? {
+                None => return Ok(None),
+                Some(pr) => pr,
+            };
 
             Ok(Some(notif::Notification {
                 detail: notif::NotifDetail::PrOpened {

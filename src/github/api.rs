@@ -29,19 +29,21 @@ impl Client {
         Ok(client)
     }
 
-    pub fn get_issue(&self, params: &github::GetIssueParams) -> Result<github::Issue> {
+    pub fn get_issue(&self, params: &github::GetIssueParams) -> Result<Option<github::Issue>> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/issues/{}",
             params.repo.owner, params.repo.name, params.number
         );
         let res = self.client.get(&url).send()?;
 
-        if res.status().as_u16() != StatusCode::OK {
-            web::log_error_response(&url, res);
-            return Err(anyhow!("failed to fetch issue: {}", url));
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch issue: {}", url))
+            }
         }
-
-        Ok(res.json()?)
     }
 
     pub fn get_issue_comment(
@@ -54,30 +56,33 @@ impl Client {
         );
         let res = self.client.get(&url).send()?;
 
-        if res.status().as_u16() == StatusCode::NOT_FOUND {
-            return Ok(None);
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch issue comment: {}", url))
+            }
         }
-
-        if res.status().as_u16() == StatusCode::OK {
-            return Ok(Some(res.json()?));
-        }
-
-        web::log_error_response(&url, res);
-        Err(anyhow!("failed to fetch issue comment: {}", url))
     }
 
-    pub fn get_pr_review(&self, params: &github::GetPrReviewParams) -> Result<github::Review> {
+    pub fn get_pr_review(
+        &self,
+        params: &github::GetPrReviewParams,
+    ) -> Result<Option<github::Review>> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/pulls/{}/reviews/{}",
             params.repo.owner, params.repo.name, params.pr_number, params.review_id,
         );
         let res = self.client.get(&url).send()?;
 
-        if res.status().as_u16() == StatusCode::OK {
-            return Ok(res.json()?);
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch PR review: {}", url))
+            }
         }
-
-        web::log_error_response(&url, res);
-        Err(anyhow!("failed to fetch issue comment: {}", url))
     }
 }
