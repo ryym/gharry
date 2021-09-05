@@ -1,9 +1,11 @@
 mod api;
 mod issue;
+mod issue_event;
 mod review;
 
 pub use api::Client;
 pub use issue::*;
+pub use issue_event::*;
 pub use review::*;
 
 use crate::email::Email;
@@ -59,6 +61,12 @@ pub struct GetIssueCommentParams<'a> {
 pub struct IssueComment {
     pub body: String,
     pub user: User,
+}
+
+#[derive(Debug)]
+pub struct GetIssueEventParams<'a> {
+    pub repo: &'a Repository,
+    pub event_id: usize,
 }
 
 #[derive(Debug)]

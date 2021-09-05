@@ -66,6 +66,26 @@ impl Client {
         }
     }
 
+    pub fn get_issue_event(
+        &self,
+        params: &github::GetIssueEventParams,
+    ) -> Result<Option<github::IssueEvent>> {
+        let url = format!(
+            "https://api.github.com/repos/{}/{}/issues/events/{}",
+            params.repo.owner, params.repo.name, params.event_id,
+        );
+        let res = self.client.get(&url).send()?;
+
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch issue event: {}", url))
+            }
+        }
+    }
+
     pub fn get_pr_review(
         &self,
         params: &github::GetPrReviewParams,
