@@ -29,6 +29,20 @@ impl Client {
         Ok(client)
     }
 
+    pub fn get_user(&self, params: &github::GetUserParams) -> Result<Option<github::User>> {
+        let url = format!("https://api.github.com/users/{}", params.name);
+        let res = self.client.get(&url).send()?;
+
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch user: {}", url))
+            }
+        }
+    }
+
     pub fn get_issue(&self, params: &github::GetIssueParams) -> Result<Option<github::Issue>> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/issues/{}",

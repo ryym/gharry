@@ -46,6 +46,11 @@ pub struct EmailNotif {
 }
 
 #[derive(Debug)]
+pub struct GetUserParams<'a> {
+    pub name: &'a str,
+}
+
+#[derive(Debug)]
 pub struct GetIssueParams<'a> {
     pub repo: &'a Repository,
     pub number: usize,
