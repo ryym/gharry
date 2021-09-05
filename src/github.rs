@@ -1,8 +1,10 @@
 mod api;
 mod issue;
+mod review;
 
 pub use api::Client;
 pub use issue::*;
+pub use review::*;
 
 use crate::email::Email;
 use anyhow::Result;

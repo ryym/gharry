@@ -50,7 +50,7 @@ impl Client {
     ) -> Result<Option<github::IssueComment>> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/issues/comments/{}",
-            params.repo.owner, params.repo.name, params.comment_id
+            params.repo.owner, params.repo.name, params.comment_id,
         );
         let res = self.client.get(&url).send()?;
 
@@ -60,6 +60,21 @@ impl Client {
 
         if res.status().as_u16() == StatusCode::OK {
             return Ok(Some(res.json()?));
+        }
+
+        web::log_error_response(&url, res);
+        Err(anyhow!("failed to fetch issue comment: {}", url))
+    }
+
+    pub fn get_pr_review(&self, params: &github::GetPrReviewParams) -> Result<github::Review> {
+        let url = format!(
+            "https://api.github.com/repos/{}/{}/pulls/{}/reviews/{}",
+            params.repo.owner, params.repo.name, params.pr_number, params.review_id,
+        );
+        let res = self.client.get(&url).send()?;
+
+        if res.status().as_u16() == StatusCode::OK {
+            return Ok(res.json()?);
         }
 
         web::log_error_response(&url, res);
