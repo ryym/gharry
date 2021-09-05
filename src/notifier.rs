@@ -51,6 +51,7 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
             user_name: Some(sender),
             icon_url: None,
         }),
+
         NotifDetail::PrOpened { opener, pr } => {
             let login = format!("@{}", opener.login);
             let pr_sbj = issue_subject(&pr, None);
@@ -60,6 +61,7 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(opener.avatar_url),
             })
         }
+
         NotifDetail::PrReviewed {
             url,
             pr,
@@ -77,6 +79,22 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(commenter.avatar_url),
             })
         }
+
+        NotifDetail::IssueClosed {
+            closer,
+            issue,
+            is_merge,
+        } => {
+            let login = format!("@{}", closer.login);
+            let issue_sbj = issue_subject(&issue, None);
+            let action = if is_merge { "merged" } else { "closed" };
+            Some(NotifMessage {
+                text: format!("{} {} {}", login, action, issue_sbj),
+                user_name: Some(login),
+                icon_url: Some(closer.avatar_url),
+            })
+        }
+
         NotifDetail::Commented {
             url,
             commenter,
