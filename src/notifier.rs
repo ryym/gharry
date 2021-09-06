@@ -80,6 +80,18 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
             })
         }
 
+        NotifDetail::DirectReviewRequested { reviewee, pr } => {
+            let login = format!("@{}", reviewee.login);
+            let pr_sbj = issue_subject(&pr, None);
+            Some(NotifMessage {
+                text: format!("{} requested your review on {}", login, pr_sbj),
+                user_name: Some(login),
+                icon_url: Some(reviewee.avatar_url),
+            })
+        }
+
+        NotifDetail::TeamReviewRequested { .. } => None,
+
         NotifDetail::IssueClosed {
             closer,
             issue,

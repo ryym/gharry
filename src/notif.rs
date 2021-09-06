@@ -1,9 +1,11 @@
+mod direct_review_request;
 mod issue_close;
 mod issue_comment;
 mod plain;
 mod pr_open;
 mod pr_review;
 mod push;
+mod team_review_request;
 
 use crate::{github, slack};
 use anyhow::Result;
@@ -29,6 +31,15 @@ pub enum NotifDetail {
         state: github::ReviewState,
         commenter: github::User,
         comment: String,
+    },
+    DirectReviewRequested {
+        reviewee: github::User,
+        pr: github::IssueInfo,
+    },
+    TeamReviewRequested {
+        reviewee: github::User,
+        pr: github::IssueInfo,
+        team: String,
     },
     IssueClosed {
         closer: github::User,
@@ -75,9 +86,11 @@ pub fn build_notifications(
     Ok(notifs)
 }
 
-const PARSERS: [Parser; 5] = [
+const PARSERS: [Parser; 7] = [
     Parser::PrOpen,
     Parser::PrReview,
+    Parser::DirectReviewRequest,
+    Parser::TeamReviewRequest,
     Parser::IssueClosed,
     Parser::IssueComment,
     Parser::Push,
@@ -87,6 +100,8 @@ const PARSERS: [Parser; 5] = [
 enum Parser {
     PrOpen,
     PrReview,
+    DirectReviewRequest,
+    TeamReviewRequest,
     IssueClosed,
     IssueComment,
     Push,
@@ -110,6 +125,8 @@ impl Parser {
         match *self {
             Self::PrOpen => pr_open::try_parse(cx, enotif),
             Self::PrReview => pr_review::try_parse(cx, enotif),
+            Self::DirectReviewRequest => direct_review_request::try_parse(cx, enotif),
+            Self::TeamReviewRequest => team_review_request::try_parse(cx, enotif),
             Self::IssueClosed => issue_close::try_parse(cx, enotif),
             Self::IssueComment => issue_comment::try_parse(cx, enotif),
             Self::Push => push::try_parse(cx, enotif),
