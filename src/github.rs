@@ -87,6 +87,18 @@ pub struct GetPrReviewParams<'a> {
     pub review_id: usize,
 }
 
+#[derive(Debug)]
+pub struct GetPrReviewCommentParams<'a> {
+    pub repo: &'a Repository,
+    pub review_comment_id: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReviewComment {
+    pub user: User,
+    pub body: String,
+}
+
 pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
     let lines = email
         .text_body

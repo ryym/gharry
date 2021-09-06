@@ -119,4 +119,24 @@ impl Client {
             }
         }
     }
+
+    pub fn get_pr_review_comment(
+        &self,
+        params: &github::GetPrReviewCommentParams,
+    ) -> Result<Option<github::ReviewComment>> {
+        let url = format!(
+            "https://api.github.com/repos/{}/{}/pulls/comments/{}",
+            params.repo.owner, params.repo.name, params.review_comment_id,
+        );
+        let res = self.client.get(&url).send()?;
+
+        match res.status() {
+            StatusCode::OK => Ok(res.json()?),
+            StatusCode::NOT_FOUND => Ok(None),
+            _ => {
+                web::log_error_response(&url, res);
+                Err(anyhow!("failed to fetch PR review: {}", url))
+            }
+        }
+    }
 }

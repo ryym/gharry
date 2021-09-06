@@ -80,6 +80,21 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
             })
         }
 
+        NotifDetail::PrReviewCommented {
+            url,
+            pr,
+            commenter,
+            comment,
+        } => {
+            let login = format!("@{}", commenter.login);
+            let pr_sbj = issue_subject(&pr, Some(&url));
+            Some(NotifMessage {
+                text: format!("{} 💬  ${}\n{}", login, pr_sbj, comment),
+                user_name: Some(login),
+                icon_url: Some(commenter.avatar_url),
+            })
+        }
+
         NotifDetail::DirectReviewRequested { reviewee, pr } => {
             let login = format!("@{}", reviewee.login);
             let pr_sbj = issue_subject(&pr, None);

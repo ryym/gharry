@@ -4,6 +4,7 @@ mod issue_comment;
 mod plain;
 mod pr_open;
 mod pr_review;
+mod pr_review_comment;
 mod push;
 mod team_review_request;
 
@@ -29,6 +30,12 @@ pub enum NotifDetail {
         url: String,
         pr: github::IssueInfo,
         state: github::ReviewState,
+        commenter: github::User,
+        comment: String,
+    },
+    PrReviewCommented {
+        url: String,
+        pr: github::IssueInfo,
         commenter: github::User,
         comment: String,
     },
@@ -86,9 +93,10 @@ pub fn build_notifications(
     Ok(notifs)
 }
 
-const PARSERS: [Parser; 7] = [
+const PARSERS: [Parser; 8] = [
     Parser::PrOpen,
     Parser::PrReview,
+    Parser::PrReviewComment,
     Parser::DirectReviewRequest,
     Parser::TeamReviewRequest,
     Parser::IssueClosed,
@@ -100,6 +108,7 @@ const PARSERS: [Parser; 7] = [
 enum Parser {
     PrOpen,
     PrReview,
+    PrReviewComment,
     DirectReviewRequest,
     TeamReviewRequest,
     IssueClosed,
@@ -125,6 +134,7 @@ impl Parser {
         match *self {
             Self::PrOpen => pr_open::try_parse(cx, enotif),
             Self::PrReview => pr_review::try_parse(cx, enotif),
+            Self::PrReviewComment => pr_review_comment::try_parse(cx, enotif),
             Self::DirectReviewRequest => direct_review_request::try_parse(cx, enotif),
             Self::TeamReviewRequest => team_review_request::try_parse(cx, enotif),
             Self::IssueClosed => issue_close::try_parse(cx, enotif),
