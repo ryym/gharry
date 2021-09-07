@@ -4,7 +4,6 @@ use crate::{
     store::{State, Store},
 };
 use anyhow::Result;
-use log::info;
 use std::{thread, time::Duration};
 
 pub fn run(config: Config) -> Result<()> {
@@ -12,7 +11,7 @@ pub fn run(config: Config) -> Result<()> {
     let state_path = config.dir.join(state_filename);
 
     let mut store = Store::load(state_path, State::new)?;
-    info!("Start from state: {}", store.state);
+    log::info!("Start from state: {}", store.state);
 
     let slack = slack::Client::new(slack::Credentials {
         bot_token: config.slack.bot_token.clone(),
@@ -31,14 +30,14 @@ pub fn run(config: Config) -> Result<()> {
         })?;
 
         if data.messages.is_empty() {
-            info!("No new notifications found");
+            log::info!("No new notifications found");
         } else {
-            info!("{} notifications found", data.messages.len());
+            log::info!("{} notifications found", data.messages.len());
             let last_ts = filter_and_notify(&config, &slack, &github, data.messages)?;
             store.update_state(State { last_ts })?;
         }
 
-        info!("Finished so wait a while...");
+        log::info!("Finished so wait a while...");
         thread::sleep(Duration::from_secs(10));
     }
 }
