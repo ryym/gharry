@@ -171,7 +171,7 @@ fn issue_subject(issue: &github::IssueInfo, title_link: Option<&str>) -> String 
     let title_link = title_link.map(|link| format!("<{}|{}>", link, &issue.title));
     let title = title_link.as_deref().unwrap_or(&issue.title);
     format!(
-        "[{}/{}#<{}|{}>] {}",
+        "[{}/{}<{}|#{}>] {}",
         &issue.repo.owner, &issue.repo.name, pr_url, issue.number, title
     )
 }
