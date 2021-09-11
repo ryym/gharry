@@ -52,11 +52,7 @@ impl Client {
         let res = self
             .client
             .get(url)
-            .query(&[
-                ("channel", params.channel),
-                ("oldest", params.oldest_ts),
-                ("limit", "3"), // XXX: temporarily
-            ])
+            .query(&[("channel", params.channel), ("oldest", params.oldest_ts)])
             .send()?;
 
         if res.status().as_u16() != 200 {
