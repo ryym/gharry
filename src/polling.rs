@@ -4,7 +4,7 @@ use crate::{
     store::{State, Store},
 };
 use anyhow::Result;
-use std::{thread, time::Duration};
+use std::{collections::HashSet, thread, time::Duration};
 
 pub fn run(config: Config) -> Result<()> {
     let state_filename = format!(".state-{}.json", config.slack.mail_channel_id);
@@ -55,9 +55,46 @@ fn filter_and_notify(
     let last_ts = messages[messages.len() - 1].ts.clone();
 
     let notifs = notif::build_notifications(notif::BuildContext { github }, messages)?;
-    for notif in notifs {
-        notifier::notify_by_slack(slack, &config.slack.dest_channel_id, notif)?;
+    let unsubscribed = unsubscribe_undesired_notifs(github, &notifs)?;
+
+    for (idx, notif) in notifs.into_iter().enumerate() {
+        if !unsubscribed.contains(&idx) {
+            notifier::notify_by_slack(slack, &config.slack.dest_channel_id, notif)?;
+        }
     }
 
     Ok(last_ts)
+}
+
+fn unsubscribe_undesired_notifs(
+    github: &github::Client,
+    notifs: &[notif::Notification],
+) -> Result<HashSet<usize>> {
+    let targets = notifs
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, notif)| match notif.detail {
+            notif::NotifDetail::TeamReviewRequested { ref pr, .. } => Some((idx, pr)),
+            _ => None,
+        });
+
+    let mut unsubscribed = HashSet::new();
+    for (idx, pr) in targets {
+        log::debug!(
+            "unsubscribing {}/{}#{}...",
+            pr.repo.owner,
+            pr.repo.name,
+            pr.number
+        );
+        let done = github.unsubscribe_pr(&github::UnsubscribePrParams {
+            repo: &pr.repo,
+            number: pr.number,
+            user_login: "ryym", // TODO: Get value from config
+        })?;
+        if done {
+            unsubscribed.insert(idx);
+        }
+    }
+
+    Ok(unsubscribed)
 }
