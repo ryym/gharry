@@ -80,12 +80,7 @@ fn unsubscribe_undesired_notifs(
 
     let mut unsubscribed = HashSet::new();
     for (idx, pr) in targets {
-        log::debug!(
-            "unsubscribing {}/{}#{}...",
-            pr.repo.owner,
-            pr.repo.name,
-            pr.number
-        );
+        log::debug!("unsubscribing {}#{}...", pr.repo.fullname(), pr.number);
         let done = github.unsubscribe_pr(&github::UnsubscribePrParams {
             repo: &pr.repo,
             number: pr.number,

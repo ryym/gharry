@@ -31,6 +31,12 @@ pub struct Repository {
     pub name: String,
 }
 
+impl Repository {
+    pub fn fullname(&self) -> String {
+        format!("{}/{}", self.owner, self.name)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct IssueInfo {
     pub repo: Repository,
