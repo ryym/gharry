@@ -18,15 +18,21 @@ const DEFAULT_ICON_EMOJI: &str = ":carousel_horse:";
 pub fn notify_by_slack(slack: &slack::Client, channel: &str, notif: Notification) -> Result<()> {
     log::debug!("notifying {:?}", notif);
 
+    let mention = if should_alert(&notif.detail) {
+        "\n<!here>"
+    } else {
+        ""
+    };
     match generate_message(notif) {
         None => {
             log::info!("Skip sending notification");
         }
         Some(msg) => {
             log::info!("Sending notification...");
+            let text = format!("{}{}", msg.text, mention);
             slack.chat_post_message(&slack::ChatMessage {
                 channel,
-                text: &msg.text,
+                text: &text,
                 username: Some(msg.user_name.as_deref().unwrap_or(DEFAULT_USER_NAME)),
                 icon_url: msg.icon_url.as_deref(),
                 icon_emoji: icon_emoji(&msg.icon_url),
@@ -35,6 +41,13 @@ pub fn notify_by_slack(slack: &slack::Client, channel: &str, notif: Notification
     }
 
     Ok(())
+}
+
+fn should_alert(detail: &NotifDetail) -> bool {
+    matches!(
+        detail,
+        NotifDetail::Pushed { .. } | NotifDetail::PrOpened { .. } | NotifDetail::IssueClosed { .. },
+    )
 }
 
 fn icon_emoji(icon_url: &Option<String>) -> Option<&str> {
