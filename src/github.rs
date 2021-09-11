@@ -1,4 +1,5 @@
 mod api;
+mod graphql;
 mod issue;
 mod issue_event;
 mod review;
