@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde_json::json;
 
 pub trait Query {
     type Output: DeserializeOwned;
@@ -52,5 +53,168 @@ pub fn fetch_data<O: DeserializeOwned>(
     match r.data {
         Some(data) => Ok(data),
         None => panic!("GraphQL response does not contain data nor errors"),
+    }
+}
+
+#[derive(Debug)]
+pub struct GetReviewRequestsQuery<'a> {
+    pub owner: &'a str,
+    pub repo: &'a str,
+    pub pr_number: usize,
+}
+
+impl Query for GetReviewRequestsQuery<'_> {
+    type Output = get_review_requests::Payload;
+
+    fn to_json(&self) -> serde_json::Value {
+        let query = r#"
+            query($owner: String!, $repo: String!, $pr_number: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $pr_number) {
+                  id
+                  reviewRequests(first: 20) {
+                    nodes {
+                      requestedReviewer {
+                        __typename
+                        ... on User {
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        "#;
+        json!({
+            "query": query,
+            "variables": {
+                "owner": self.owner,
+                "repo": self.repo,
+                "pr_number": true,
+            },
+        })
+    }
+}
+
+pub mod get_review_requests {
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    pub struct Payload {
+        pub repository: Option<Repository>,
+    }
+
+    impl Payload {
+        pub fn pull_request(&self) -> Option<&PullRequest> {
+            self.repository.as_ref()?.pull_request.as_ref()
+        }
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Repository {
+        pub pull_request: Option<PullRequest>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct PullRequest {
+        pub id: String,
+        pub review_requests: ReviewRequestConn,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReviewRequestConn {
+        pub nodes: Vec<ReviewRequest>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReviewRequest {
+        pub requested_reviewer: Option<RequestedReviewer>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(tag = "__typename")]
+    pub enum RequestedReviewer {
+        #[serde(rename_all = "camelCase")]
+        Mannequin,
+        #[serde(rename_all = "camelCase")]
+        Team,
+        #[serde(rename_all = "camelCase")]
+        User { login: String },
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSubscriptionInput {
+    pub state: SubscriptionState,
+    pub subscribable_id: String,
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum SubscriptionState {
+    Ignored,
+    Subscribed,
+    Unsubscribed,
+}
+
+#[derive(Debug)]
+pub struct UpdateSubscriptionMut {
+    pub input: UpdateSubscriptionInput,
+}
+
+impl Query for UpdateSubscriptionMut {
+    type Output = update_subscription_mut::Payload;
+
+    fn to_json(&self) -> serde_json::Value {
+        let query = r#"
+            mutation($input: UpdateSubscriptionInput!) {
+              updateSubscription(input: $input) {
+                subscribable {
+                    viewerSubscription
+                }
+              }
+            }
+        "#;
+        json!({
+            "query": query,
+            "variables": { "input": &self.input }
+        })
+    }
+}
+
+pub mod update_subscription_mut {
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Payload {
+        pub update_subscription: UpdateSubscription,
+    }
+
+    impl Payload {
+        pub fn viewer_subscription(&self) -> Option<super::SubscriptionState> {
+            self.update_subscription
+                .subscribable
+                .as_ref()?
+                .viewer_subscription
+        }
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateSubscription {
+        pub subscribable: Option<Subscribable>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Subscribable {
+        pub viewer_subscription: Option<super::SubscriptionState>,
     }
 }

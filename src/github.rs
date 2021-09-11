@@ -100,6 +100,13 @@ pub struct ReviewComment {
     pub body: String,
 }
 
+#[derive(Debug)]
+pub struct UnsubscribePrParams<'a> {
+    pub repo: &'a Repository,
+    pub number: usize,
+    pub user_login: &'a str,
+}
+
 pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
     let lines = email
         .text_body
