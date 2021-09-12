@@ -1,9 +1,6 @@
-use anyhow::{Context, Result};
-use std::{env, path::PathBuf};
-
-fn must_get_env(name: &str) -> Result<String> {
-    env::var(name).with_context(|| format!("environment variable required: {}", name))
-}
+use crate::env::must_get_env;
+use anyhow::Result;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct Config {

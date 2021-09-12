@@ -1,5 +1,6 @@
 mod config;
 mod email;
+mod env;
 mod github;
 mod notif;
 mod notifier;
