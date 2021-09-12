@@ -92,4 +92,9 @@ fn unsubscribe_undesired_notifs(
     }
 
     Ok(unsubscribed)
+
+    // TODO: reason が mention な通知が来てたら unsubscribe しないようにする。
+    // 常に最新の通知を処理してれば大抵は unsubscribe -> メンション通知という順序なので問題ないが、
+    // 溜まった通知メールを一気に処理するようなケースでは、メンション通知を受け取ってるのに
+    // 後から unsubscribe してしまいそれ以降の通知を受け取れなくなる、という事が起きえる。
 }
