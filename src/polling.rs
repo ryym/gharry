@@ -78,7 +78,10 @@ fn unsubscribe_undesired_notifs(
         .filter_map(|(idx, notif)| match notif.detail {
             notif::NotifDetail::TeamReviewRequested { ref pr, .. } => Some((idx, pr)),
             _ => None,
-        });
+        })
+        .collect::<Vec<_>>();
+
+    log::info!("{} undesired notifications found", targets.len());
 
     let mut unsubscribed = HashSet::new();
     for (idx, pr) in targets {
