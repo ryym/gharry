@@ -9,20 +9,24 @@ mod slack;
 mod store;
 mod web;
 
-use crate::config::Config;
+use crate::{config::Config, env::must_get_env};
 use anyhow::{Context, Result};
-use std::fs;
+use std::{fs, path::PathBuf};
 
 fn main() -> Result<()> {
     env_logger::Builder::new()
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    let config = Config::from_env()?;
-    if !config.dir.as_path().exists() {
-        fs::create_dir_all(&config.dir).context("failed to create config directory")?;
+    let work_dir = [&must_get_env("HOME")?, ".gharry"]
+        .iter()
+        .collect::<PathBuf>();
+    if !work_dir.as_path().exists() {
+        fs::create_dir_all(&work_dir).context("failed to create config directory")?;
     }
 
+    let config = Config::build_default(work_dir)?;
     polling::run(config)?;
+
     Ok(())
 }
