@@ -60,6 +60,7 @@ fn filter_and_notify(
     for (idx, notif) in notifs.into_iter().enumerate() {
         if !unsubscribed.contains(&idx) {
             notifier::notify_by_slack(slack, &config.slack.dest_channel_id, notif)?;
+            thread::sleep(Duration::from_secs(1));
         }
     }
 
