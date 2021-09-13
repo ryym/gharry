@@ -44,7 +44,7 @@ pub fn notify_by_slack(slack: &slack::Client, channel: &str, notif: Notification
 }
 
 fn should_alert(detail: &NotifDetail) -> bool {
-    matches!(
+    !matches!(
         detail,
         NotifDetail::Pushed { .. } | NotifDetail::PrOpened { .. } | NotifDetail::IssueClosed { .. },
     )
