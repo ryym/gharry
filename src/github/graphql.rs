@@ -91,7 +91,7 @@ impl Query for GetReviewRequestsQuery<'_> {
             "variables": {
                 "owner": self.owner,
                 "repo": self.repo,
-                "pr_number": true,
+                "pr_number": self.pr_number,
             },
         })
     }
