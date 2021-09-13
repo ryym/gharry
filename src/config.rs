@@ -11,6 +11,7 @@ struct RawConfig {
     pub slack_mail_channel_id: String,
     pub slack_dest_channel_id: String,
     pub github_access_token: String,
+    pub github_login_name: String,
 }
 
 impl RawConfig {
@@ -47,6 +48,7 @@ impl Config {
             },
             github: GitHubConfig {
                 auth_token: raw.github_access_token,
+                login_name: raw.github_login_name,
             },
         })
     }
@@ -62,4 +64,5 @@ pub struct SlackConfig {
 #[derive(Debug)]
 pub struct GitHubConfig {
     pub auth_token: String,
+    pub login_name: String,
 }

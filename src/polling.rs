@@ -55,7 +55,7 @@ fn filter_and_notify(
     let last_ts = messages[messages.len() - 1].ts.clone();
 
     let notifs = notif::build_notifications(notif::BuildContext { github }, messages)?;
-    let unsubscribed = unsubscribe_undesired_notifs(github, &notifs)?;
+    let unsubscribed = unsubscribe_undesired_notifs(github, &notifs, &config.github.login_name)?;
 
     for (idx, notif) in notifs.into_iter().enumerate() {
         if !unsubscribed.contains(&idx) {
@@ -69,6 +69,7 @@ fn filter_and_notify(
 fn unsubscribe_undesired_notifs(
     github: &github::Client,
     notifs: &[notif::Notification],
+    user_login: &str,
 ) -> Result<HashSet<usize>> {
     let targets = notifs
         .iter()
@@ -84,7 +85,7 @@ fn unsubscribe_undesired_notifs(
         let done = github.unsubscribe_pr(&github::UnsubscribePrParams {
             repo: &pr.repo,
             number: pr.number,
-            user_login: "ryym", // TODO: Get value from config
+            user_login,
         })?;
         if done {
             unsubscribed.insert(idx);
