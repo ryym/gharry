@@ -45,17 +45,14 @@ fn extract_commit_info(lines: &[String]) -> Result<Vec<github::CommitInfo>> {
     let hash_re = Regex::new(r"^[a-z0-9]{40}")?;
     let commits = lines
         .iter()
-        .filter_map(|line| {
-            let mut parts = line.split_ascii_whitespace();
-            match (parts.next(), parts.next()) {
-                (Some(maybe_hash), Some(maybe_msg)) if hash_re.is_match(maybe_hash) => {
-                    Some(github::CommitInfo {
-                        hash: maybe_hash.to_string(),
-                        message: maybe_msg.to_string(),
-                    })
-                }
-                _ => None,
+        .filter_map(|line| match line.split_once(' ') {
+            Some((maybe_hash, maybe_msg)) if hash_re.is_match(maybe_hash) => {
+                Some(github::CommitInfo {
+                    hash: maybe_hash.to_string(),
+                    message: maybe_msg.to_string(),
+                })
             }
+            _ => None,
         })
         .collect();
     Ok(commits)
