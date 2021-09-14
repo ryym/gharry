@@ -176,8 +176,8 @@ impl Client {
                 _ => false,
             }
         });
-        if !review_requested_directly {
-            log::info!("skip unsubscribing: no direct review request");
+        if review_requested_directly {
+            log::info!("skip unsubscribing: requested review directly");
             return Ok(false);
         }
 
