@@ -8,7 +8,7 @@ mod pr_review_comment;
 mod push;
 mod team_review_request;
 
-use crate::{github, slack};
+use crate::{email::Email, github, slack};
 use anyhow::Result;
 
 #[derive(Debug)]
@@ -80,9 +80,9 @@ pub fn build_notifications(
         .into_iter()
         .filter_map(slack::extract_email_from_message)
         .try_fold(Vec::new(), |mut notifs, email| {
-            github::build_notif_from_email(email)
+            github::build_notif_from_email(&email)
                 .and_then(|enotif| {
-                    let n = Parser::parse(&cx, enotif)?;
+                    let n = Parser::parse(&cx, email, enotif)?;
                     Ok(Notification { detail: n.detail })
                 })
                 .map(|notif| {
@@ -117,13 +117,13 @@ enum Parser {
 }
 
 impl Parser {
-    fn parse(cx: &BuildContext, enotif: github::EmailNotif) -> Result<Notification> {
+    fn parse(cx: &BuildContext, email: Email, enotif: github::EmailNotif) -> Result<Notification> {
         for p in PARSERS {
             if let Some(notif) = p.try_parse(cx, &enotif)? {
                 return Ok(notif);
             }
         }
-        Ok(plain::parse(enotif))
+        Ok(plain::parse(email, enotif))
     }
 
     fn try_parse(

@@ -1,9 +1,9 @@
-use crate::{github, notif};
+use crate::{email::Email, github, notif};
 
-pub(super) fn parse(enotif: github::EmailNotif) -> notif::Notification {
+pub(super) fn parse(email: Email, enotif: github::EmailNotif) -> notif::Notification {
     notif::Notification {
         detail: notif::NotifDetail::Unknown {
-            sender: enotif.email.sender_name,
+            sender: email.sender_name,
             body: enotif.lines,
         },
     }

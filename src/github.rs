@@ -52,7 +52,6 @@ pub struct CommitInfo {
 
 #[derive(Debug)]
 pub struct EmailNotif {
-    pub email: Email,
     pub lines: Vec<String>,
     pub detected_issue: Option<IssueInfo>,
     pub github_url: Option<String>,
@@ -113,7 +112,7 @@ pub struct UnsubscribePrParams<'a> {
     pub user_login: &'a str,
 }
 
-pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
+pub fn build_notif_from_email(email: &Email) -> Result<EmailNotif> {
     let lines = email
         .text_body
         .replace('\r', "")
@@ -124,7 +123,6 @@ pub fn build_notif_from_email(email: Email) -> Result<EmailNotif> {
     let github_url = find_github_link(&lines);
 
     Ok(EmailNotif {
-        email,
         lines,
         detected_issue: issue,
         github_url,
