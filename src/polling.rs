@@ -6,7 +6,7 @@ use crate::{
 use anyhow::Result;
 use std::{collections::HashSet, thread, time::Duration};
 
-pub fn run(config: Config) -> Result<()> {
+pub fn run(config: &Config) -> Result<()> {
     let state_filename = format!(".state-{}.json", config.slack.mail_channel_id);
     let state_path = config.dir.join(state_filename);
 

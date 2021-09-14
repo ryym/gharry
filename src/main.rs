@@ -11,7 +11,7 @@ mod web;
 
 use crate::{config::Config, env::must_get_env};
 use anyhow::{Context, Result};
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, thread, time::Duration};
 
 fn main() -> Result<()> {
     env_logger::Builder::new()
@@ -26,7 +26,20 @@ fn main() -> Result<()> {
     }
 
     let config = Config::build_default(work_dir)?;
-    polling::run(config)?;
-
-    Ok(())
+    'poll_loop: loop {
+        match polling::run(&config) {
+            Ok(()) => return Ok(()),
+            Err(err) => {
+                for cause in err.chain() {
+                    if let Some(err) = cause.downcast_ref::<reqwest::Error>() {
+                        log::info!("some web request failed: {}", err);
+                        log::info!("will retry polling after {} seconds...", 30);
+                        thread::sleep(Duration::from_secs(30));
+                        continue 'poll_loop;
+                    }
+                }
+                return Err(err);
+            }
+        }
+    }
 }
