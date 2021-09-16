@@ -1,13 +1,7 @@
 mod api;
 mod graphql;
-mod issue;
-mod issue_event;
-mod review;
 
 pub use api::Client;
-pub use issue::*;
-pub use issue_event::*;
-pub use review::*;
 
 use crate::email::Email;
 use anyhow::Result;
@@ -55,6 +49,50 @@ pub struct EmailNotif {
     pub lines: Vec<String>,
     pub detected_issue: Option<IssueInfo>,
     pub github_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Issue {
+    pub html_url: String,
+    pub state: IssueState,
+    pub number: usize,
+    pub title: String,
+    pub user: User,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum IssueState {
+    Open,
+    Closed,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct IssueEvent {
+    pub event: String,
+    pub actor: User,
+    pub issue: Issue,
+    pub pull_request: Option<IssueEventPr>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct IssueEventPr {
+    url: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Review {
+    pub user: User,
+    pub body: String,
+    pub state: ReviewState,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum ReviewState {
+    Commented,
+    Approved,
+    ChangesRequested,
 }
 
 #[derive(Debug)]
