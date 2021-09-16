@@ -26,3 +26,9 @@ GitHub -[email]-> Slack -[Gharry]-> Slack
     - The GitHub's notifications API cannot be used since it ignores review state changes.
 - Do everything in a single thread with blocking. No asynchronous IO.
     - This is enough for this program.
+
+## Screenshot
+
+A sample image of notifications from `facebook/react` when I'm watching the repository:
+
+![Slack screenshot](https://raw.githubusercontent.com/ryym/i/master/gharry/slack-sample.png)
