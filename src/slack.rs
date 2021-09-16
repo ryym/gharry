@@ -31,6 +31,8 @@ pub struct ChatMessage<'a> {
     pub username: Option<&'a str>,
     pub icon_url: Option<&'a str>,
     pub icon_emoji: Option<&'a str>,
+    pub unfurl_links: bool,
+    pub unfurl_media: bool,
 }
 
 #[derive(Debug, Deserialize)]

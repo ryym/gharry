@@ -36,6 +36,8 @@ pub fn notify_by_slack(slack: &slack::Client, channel: &str, notif: Notification
                 username: Some(msg.user_name.as_deref().unwrap_or(DEFAULT_USER_NAME)),
                 icon_url: msg.icon_url.as_deref(),
                 icon_emoji: icon_emoji(&msg.icon_url),
+                unfurl_links: false,
+                unfurl_media: false,
             })?;
         }
     }
