@@ -49,6 +49,8 @@ impl Client {
 
     pub fn conversations_history(&self, params: ConvHistoryParams) -> Result<ConvHistoryResponse> {
         let url = "https://slack.com/api/conversations.history";
+
+        // Note that the conversations.history endpoint returns max 100 messages by default.
         let res = self
             .client
             .get(url)
