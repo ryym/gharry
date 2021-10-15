@@ -96,5 +96,8 @@ fn review_head_comment(review: &github::Review) -> String {
         github::ReviewState::ChangesRequested => {
             format!("@{} requested changes on this pull request.", login)
         }
+        github::ReviewState::Dismissed => {
+            format!("@{} ???.", login)
+        }
     }
 }

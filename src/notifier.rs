@@ -199,6 +199,7 @@ fn review_state_emoji(state: &github::ReviewState) -> &'static str {
         github::ReviewState::Commented => "💬",
         github::ReviewState::Approved => "👍",
         github::ReviewState::ChangesRequested => "⚠️",
+        github::ReviewState::Dismissed => "",
     }
 }
 
