@@ -24,9 +24,15 @@ pub(super) fn try_parse(
                 Some(review) => review,
             };
 
-            // Get the review comment from the email instead of `review.body`. This is because
-            // the former contains review discussion comments submitted with the review.
-            let whole_comment = extract_whole_comments(&enotif.lines, &review)?;
+            // Get the review comment from the email instead of `review.body` if possible. Tihs is
+            // because the former contains discussion comments as well submitted with that review.
+            let comment = match extract_whole_comments(&enotif.lines, &review) {
+                Ok(comment) => comment,
+                Err(err) => {
+                    log::warn!("failed to extract whole comment: {}", err);
+                    review.body
+                }
+            };
 
             Ok(Some(notif::Notification {
                 detail: notif::NotifDetail::PrReviewed {
@@ -34,7 +40,7 @@ pub(super) fn try_parse(
                     pr: issue.clone(),
                     state: review.state,
                     commenter: review.user,
-                    comment: whole_comment,
+                    comment,
                 },
             }))
         }
