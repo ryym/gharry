@@ -170,8 +170,9 @@ pub fn build_notif_from_email(email: &Email) -> Result<EmailNotif> {
 
 fn issue_info_from_notif_subject(subject: &str) -> Result<Option<IssueInfo>> {
     // A regex matches with a subject such as "Re: [ryym/gharry] Fix typo (#1234)".
+    // Note that some email subjects end with "(PR #1234)" instead of "(#1234)" since 2021-10-18.
     let re = Regex::new(
-        r"^(?:Re: )?\[(?P<owner>[^/]+)/(?P<repo>[^\]]+)\] (?P<title>.+) \(#(?P<issue>\d+)\)$",
+        r"^(?:Re: )?\[(?P<owner>[^/]+)/(?P<repo>[^\]]+)\] (?P<title>.+) \((?:PR )?#(?P<issue>\d+)\)$",
     )?;
     match re.captures(subject) {
         None => Ok(None),
