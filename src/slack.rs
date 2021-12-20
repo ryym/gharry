@@ -22,6 +22,7 @@ pub struct Message {
 pub struct ConvHistoryParams<'a> {
     pub channel: &'a str,
     pub oldest_ts: &'a str,
+    pub limit: Option<&'a str>,
 }
 
 #[derive(Debug, Serialize)]

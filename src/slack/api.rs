@@ -50,12 +50,13 @@ impl Client {
     pub fn conversations_history(&self, params: ConvHistoryParams) -> Result<ConvHistoryResponse> {
         let url = "https://slack.com/api/conversations.history";
 
+        let mut query_params = vec![("channel", params.channel), ("oldest", params.oldest_ts)];
+        if let Some(limit) = params.limit {
+            query_params.push(("limit", limit));
+        }
+
         // Note that the conversations.history endpoint returns max 100 messages by default.
-        let res = self
-            .client
-            .get(url)
-            .query(&[("channel", params.channel), ("oldest", params.oldest_ts)])
-            .send()?;
+        let res = self.client.get(url).query(&query_params).send()?;
 
         if res.status().as_u16() != 200 {
             web::log_error_response(&url, res);

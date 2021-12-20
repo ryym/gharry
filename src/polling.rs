@@ -27,6 +27,7 @@ pub fn run(config: &Config) -> Result<()> {
             // - We don't need to specify the valid ts; it is just a timestamp.
             // - The result does not contain a message with the specified ts if exists.
             oldest_ts: &store.state.last_ts,
+            limit: None,
         })?;
 
         if data.messages.is_empty() {
