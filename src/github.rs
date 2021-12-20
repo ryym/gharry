@@ -192,15 +192,17 @@ fn issue_info_from_notif_subject(subject: &str) -> Result<Option<IssueInfo>> {
 
 fn find_github_link(lines: &[String]) -> Option<String> {
     let idx_last = lines.len() - 1;
-    lines.get(idx_last - 1).and_then(|prev_last| {
-        if prev_last.starts_with("Reply to this email directly or view it on GitHub:")
-            || prev_last.starts_with("View it on GitHub:")
+    let from = std::cmp::max(idx_last - 6, 0);
+    for idx in from..idx_last {
+        let line = &lines[idx];
+        if line.starts_with("Reply to this email directly or view it on GitHub:")
+            || line.starts_with("View it on GitHub:")
         {
-            let maybe_url = lines[idx_last].trim();
+            let maybe_url = lines[idx + 1].trim();
             if maybe_url.starts_with("https://github.com") {
                 return Some(maybe_url.to_string());
             }
         }
-        None
-    })
+    }
+    None
 }
