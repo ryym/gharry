@@ -10,13 +10,14 @@ mod team_review_request;
 
 use crate::{email::Email, github, slack};
 use anyhow::Result;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Notification {
     pub detail: NotifDetail,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum NotifDetail {
     Unknown {
         sender: String,

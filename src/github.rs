@@ -6,20 +6,20 @@ pub use api::Client;
 use crate::email::Email;
 use anyhow::Result;
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Credentials {
     pub auth_token: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct Repository {
     pub owner: String,
     pub name: String,
@@ -31,14 +31,14 @@ impl Repository {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IssueInfo {
     pub repo: Repository,
     pub number: usize,
     pub title: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct CommitInfo {
     pub hash: String,
     pub message: String,
@@ -87,7 +87,7 @@ pub struct Review {
     pub state: ReviewState,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ReviewState {
     Commented,

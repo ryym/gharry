@@ -11,7 +11,7 @@ pub struct Credentials {
     pub bot_token: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Message {
     pub ts: String,
     pub text: String,
@@ -36,13 +36,13 @@ pub struct ChatMessage<'a> {
     pub unfurl_media: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EmailAddress {
     pub address: String,
     pub name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "pretty_type")]
 pub enum File {
     Unknown,
