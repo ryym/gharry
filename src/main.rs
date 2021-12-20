@@ -1,16 +1,5 @@
-mod config;
-mod email;
-mod env;
-mod github;
-mod notif;
-mod notifier;
-mod polling;
-mod slack;
-mod store;
-mod web;
-
-use crate::config::Config;
 use anyhow::Result;
+use gharry::{config::Config, env, polling};
 use std::{thread, time::Duration};
 
 fn main() -> Result<()> {
