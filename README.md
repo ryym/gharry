@@ -32,3 +32,23 @@ GitHub -[email]-> Slack -[Gharry]-> Slack
 A sample image of notifications from `facebook/react` when I'm watching the repository:
 
 ![Slack screenshot](https://raw.githubusercontent.com/ryym/i/master/gharry/slack-sample.png)
+
+## Usage
+
+1. Slack setup
+    - Create a bot to use Slack API.
+    - Create two channels.
+    - Configure email app and get an email address.
+2. GitHub setup
+    - Configure to send notifications to the email address created by Slack.
+    - Generate an access token (scope: repo, notifications).
+3. Gharry configuration
+    - Put a config file in `~/.gharry/config.toml`.
+
+    ```toml
+    slack_oauth_bot_token = "..."
+    slack_mail_channel_id = "..."
+    slack_dest_channel_id = "..."
+    github_access_token = "..."
+    github_login_name = "ryym"
+    ```
