@@ -3,7 +3,7 @@ use anyhow::Result;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-pub fn run(config: &Config, oldest_ts: &str) -> Result<()> {
+pub fn run(config: &Config, oldest_ts: &str, limit: Option<&str>) -> Result<()> {
     let slack = slack::Client::new(slack::Credentials {
         bot_token: config.slack.bot_token.clone(),
     })?;
@@ -14,7 +14,7 @@ pub fn run(config: &Config, oldest_ts: &str) -> Result<()> {
     let data = slack.conversations_history(slack::ConvHistoryParams {
         channel: &config.slack.mail_channel_id,
         oldest_ts,
-        limit: Some("1"),
+        limit: limit.or(Some("1")),
     })?;
 
     let msgs_json = serde_json::to_string(&data.messages)?;
