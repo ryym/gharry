@@ -1,9 +1,9 @@
-use crate::{config::Config, github, notif, slack};
+use crate::{config::Config, github, notif, notifier, slack};
 use anyhow::Result;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-pub fn run(config: &Config, oldest_ts: &str, limit: Option<&str>) -> Result<()> {
+pub fn run(config: &Config, oldest_ts: &str, limit: Option<&str>, send_notifs: bool) -> Result<()> {
     let slack = slack::Client::new(slack::Credentials {
         bot_token: config.slack.bot_token.clone(),
     })?;
@@ -35,6 +35,12 @@ pub fn run(config: &Config, oldest_ts: &str, limit: Option<&str>) -> Result<()> 
         .truncate(true)
         .open("_inspect_notifs.json")?
         .write_all(&notifs_json.into_bytes())?;
+
+    if send_notifs {
+        for notif in notifs {
+            notifier::notify_by_slack(&slack, &config.slack.dest_channel_id, notif)?;
+        }
+    }
 
     Ok(())
 }
