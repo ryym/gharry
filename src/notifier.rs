@@ -48,7 +48,10 @@ pub fn notify_by_slack(slack: &slack::Client, channel: &str, notif: Notification
 fn should_alert(detail: &NotifDetail) -> bool {
     !matches!(
         detail,
-        NotifDetail::Pushed { .. } | NotifDetail::PrOpened { .. } | NotifDetail::IssueClosed { .. },
+        NotifDetail::Pushed { .. }
+            | NotifDetail::PrOpened { .. }
+            | NotifDetail::IssueClosed { .. }
+            | NotifDetail::WorkflowCancelled { .. },
     )
 }
 
@@ -175,6 +178,20 @@ fn generate_message(notif: Notification) -> Option<NotifMessage> {
                 icon_url: Some(committer.avatar_url),
             })
         }
+
+        NotifDetail::WorkflowCancelled {
+            sender_name,
+            repo_fullname,
+            workflow_name,
+            result_url,
+        } => Some(NotifMessage {
+            text: format!(
+                "[{}] workflow cancelled: {}\n{}",
+                repo_fullname, workflow_name, result_url,
+            ),
+            user_name: Some(sender_name),
+            icon_url: None,
+        }),
     }
 }
 

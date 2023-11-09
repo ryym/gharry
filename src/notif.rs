@@ -7,6 +7,7 @@ mod pr_review;
 mod pr_review_comment;
 mod push;
 mod team_review_request;
+mod workflow_cancelled;
 
 use crate::{email::Email, github, slack};
 use anyhow::Result;
@@ -66,6 +67,12 @@ pub enum NotifDetail {
         committer: github::User,
         commits: Vec<github::CommitInfo>,
     },
+    WorkflowCancelled {
+        sender_name: String,
+        repo_fullname: String,
+        workflow_name: String,
+        result_url: String,
+    },
 }
 
 #[derive(Debug)]
@@ -94,7 +101,7 @@ pub fn build_notifications(
     Ok(notifs)
 }
 
-const PARSERS: [Parser; 8] = [
+const PARSERS: [Parser; 9] = [
     Parser::PrOpen,
     Parser::PrReview,
     Parser::PrReviewComment,
@@ -103,6 +110,7 @@ const PARSERS: [Parser; 8] = [
     Parser::IssueClosed,
     Parser::IssueComment,
     Parser::Push,
+    Parser::WorkflowCancelled,
 ];
 
 #[derive(Debug)]
@@ -115,12 +123,13 @@ enum Parser {
     IssueClosed,
     IssueComment,
     Push,
+    WorkflowCancelled,
 }
 
 impl Parser {
     fn parse(cx: &BuildContext, email: Email, enotif: github::EmailNotif) -> Result<Notification> {
         for p in PARSERS {
-            if let Some(notif) = p.try_parse(cx, &enotif)? {
+            if let Some(notif) = p.try_parse(cx, &email, &enotif)? {
                 return Ok(notif);
             }
         }
@@ -130,6 +139,7 @@ impl Parser {
     fn try_parse(
         &self,
         cx: &BuildContext,
+        email: &Email,
         enotif: &github::EmailNotif,
     ) -> Result<Option<Notification>> {
         match *self {
@@ -141,6 +151,7 @@ impl Parser {
             Self::IssueClosed => issue_close::try_parse(cx, enotif),
             Self::IssueComment => issue_comment::try_parse(cx, enotif),
             Self::Push => push::try_parse(cx, enotif),
+            Self::WorkflowCancelled => workflow_cancelled::try_parse(email, enotif),
         }
     }
 }
